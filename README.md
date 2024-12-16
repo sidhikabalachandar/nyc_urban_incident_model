@@ -1,1 +1,6 @@
-# gnn_crowdsourced_model
+# Overview
+We create a real heterogenous dataset for an urban incident prediction task. The goal of incident prediction is to estimate the latent ground truth for the hundreds of types of incidents that occur in a city (e.g., rodents, floods, etc.). We provide two sources of data for this prediction task. First, we provide observations of the ground truth state via *government inspections* which generate *ratings* for neighborhoods. For example, New York City conducts street inspections for every street and rates them from 1-10, but each street is only rated once every year. Importantly, these inspections are only conducted for some incident types and neighborhoods and are thus sparsely observed. We also provide another source of data: frequently observed, biased proxies of the latent state, e.g., via crowdsourced *reports* of incidents. Unlike ratings, indicators of whether reports are made are observed across all incident types, all neighborhoods, and multiple points in time. 
+
+For our dataset, we source reports from New York City 311 complaints (crowdsourced reports), leveraging 55 million reports across 141 types over two years. We combine this with a carefully curated dataset of ground truth ratings which are sourced from 300k government inspections across 5 types in the same time frame. In this codebase we provide a preprocessed dataset (available in `data/`) and code to reproduce our preprocessing steps. 
+
+# 
