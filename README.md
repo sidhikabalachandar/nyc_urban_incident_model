@@ -1,5 +1,5 @@
 # Overview
-We share here a multiview, multioutput GNN-based model for an urban incident prediction task. Our model is summarized in the figure below. Our model uses two sources of data for this prediction task.
+We share here a multiview, multioutput GNN-based model for an urban incident prediction task. Our model is summarized in the figure below. Our model uses two sources of data:
  - First, we provide observations of the ground truth incident state via *government inspections* which generate *ratings* for neighborhoods. For example, New York City conducts street inspections for every street and rates them from 1-10. Importantly, these inspections are only conducted for some incident types and neighborhoods and are thus sparsely observed.
  - We also provide another source of data: frequently observed, biased proxies of the incident state, via crowdsourced *reports* of incidents. Unlike ratings, indicators of whether reports are made are observed across all incident types, all neighborhoods, and multiple points in time.
 We share our data publicly [here](https://github.com/sidhikabalachandar/nyc_urban_incident_data).
