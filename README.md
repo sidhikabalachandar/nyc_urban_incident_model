@@ -5,7 +5,8 @@ We share here a multiview, multioutput GNN-based model for an urban incident pre
 
 Using this data, we train our model to simultaneously predict ground-truth ratings using learned node and type embeddings and infer how the likelihood of reporting varies by demographics, conditional on ground-truth. Our model's novel contribution lies in adapting GNN architectures for biased data settings by connecting multi-view datasets through a multi-output loss function.
 
-[model.pdf](https://github.com/user-attachments/files/20646996/model.pdf)
+![model](https://github.com/user-attachments/assets/015357d6-30b5-4fb9-a06b-297ff8e3f38d)
+
 
 
 # Repository structure
