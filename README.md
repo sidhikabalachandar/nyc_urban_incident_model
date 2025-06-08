@@ -8,8 +8,6 @@ Using this data, we train our model to simultaneously predict ground-truth ratin
 
 ![model](https://github.com/user-attachments/assets/015357d6-30b5-4fb9-a06b-297ff8e3f38d)
 
-
-
 # Repository structure
 In the `model` folder we provide our model and code to train and evaluate the model. This folder contains the following files:
  - `model/model.py` provides our model
