@@ -12,7 +12,7 @@ Using this data, we train our model to simultaneously predict ground-truth ratin
 In the `model` folder we provide our model and code to train and evaluate the model. This folder contains the following files:
  - `model/model.py` provides our model
  - `model/data.py` provides our dataloader and custom data sampler
- - `model/create_graph.ipynb` creates an networkx graph of New York City census tracts
+ - `model/create_graph.ipynb` creates a networkx graph of New York City census tracts
  - `model/train.py` provides code to train the model
  - `model/train.py` provides code to evaluate a trained model
 
