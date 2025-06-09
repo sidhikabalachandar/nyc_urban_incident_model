@@ -14,7 +14,7 @@ In the `model` folder we provide our model and code to train and evaluate the mo
  - `model/data.py` provides our dataloader and custom data sampler
  - `model/create_graph.ipynb` creates a networkx graph of New York City census tracts
  - `model/train.py` provides code to train the model
- - `model/train.py` provides code to evaluate a trained model
+ - `model/test.py` provides code to evaluate a trained model
 
 In the `data` folder we provide code to generate semisynthetic data. This data uses real reporting data and real demographic data, and synthetically generates ratings.
 
