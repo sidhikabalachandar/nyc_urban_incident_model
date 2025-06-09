@@ -6,7 +6,7 @@ We share our data publicly [here](https://github.com/sidhikabalachandar/nyc_urba
 
 Using this data, we train our model to simultaneously predict ground-truth ratings using learned node and type embeddings and infer how the likelihood of reporting varies by demographics, conditional on ground-truth. Our model's novel contribution lies in adapting GNN architectures for biased data settings by connecting multi-view datasets through a multi-output loss function.
 
-![model](https://github.com/user-attachments/assets/015357d6-30b5-4fb9-a06b-297ff8e3f38d)
+![Picture1](https://github.com/user-attachments/assets/71b1f9c9-fd91-46d4-b416-3beec8491079)
 
 # Repository structure
 In the `model` folder we provide our model and code to train and evaluate the model. This folder contains the following files:
