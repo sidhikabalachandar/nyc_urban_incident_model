@@ -23,7 +23,11 @@ class GNN_model(pl.LightningModule):
                  T_loss_not_has_rating_weight, 
                  rating_loss_weight,
                  reg_loss_weight,
-                 observed_type_idxs
+                 reg_loss_reporting_weight,
+                 rating_coeff_loss_weight,
+                 scaling_factor,
+                 observed_type_idxs,
+                 complaint_type_idx
                 ):
         super().__init__()
         
@@ -50,6 +54,9 @@ class GNN_model(pl.LightningModule):
         self.T_loss_not_has_rating_weight = T_loss_not_has_rating_weight
         self.rating_loss_weight = rating_loss_weight
         self.reg_loss_weight = reg_loss_weight
+        self.reg_loss_reporting_weight = reg_loss_reporting_weight
+        self.rating_coeff_loss_weight = rating_coeff_loss_weight
+        self.scaling_factor = scaling_factor
         if self.rating_loss_weight == 0:
             self.T_only = True
         else:
@@ -66,6 +73,7 @@ class GNN_model(pl.LightningModule):
         self.data = data.to(device)
         self.one_hot_type = torch.eye(num_types).to(device)
         self.observed_type_idxs = observed_type_idxs
+        self.complaint_type_idx = complaint_type_idx
         
         # training info
         self.d = device
@@ -156,10 +164,14 @@ class GNN_model(pl.LightningModule):
         loss = self.compute_loss(batch)
         self.manual_backward(loss)
         
-        # only calculate loss for P(T) layer weights and bias for data points with observed ratings
+        # Scale down gradients instead of clearing them completely
         if not self.T_only and batch['has_rating_mask'].sum() == 0:
-            self.pt_layer.grad = None
-            self.pt_layer_bias.grad = None
+            # Scale the gradients instead of setting to None
+            if self.pt_layer.grad is not None:
+                self.pt_layer.grad *= self.scaling_factor
+            
+            if self.pt_layer_bias.grad is not None:
+                self.pt_layer_bias.grad *= self.scaling_factor
         
         opt.step()
     
@@ -203,12 +215,21 @@ class GNN_model(pl.LightningModule):
             reg_loss = torch.zeros((1,)).to(self.d)
         else:
             reg_loss = torch.norm(pred_rating[not_has_rating_mask], p=2) ** 2
+
+        # loss (e): L2 regularization loss for reporting coefficients other than the intercept and the rating coefficient
+        reg_loss_reporting = torch.norm(self.pt_layer[self.complaint_type_idx, :-1], p=2) ** 2
+
+        # loss (f): relu penalty on rating coefficient ()
+        rating_coeff = self.pt_layer[self.complaint_type_idx, -1]
+        rating_coeff_loss = torch.nn.functional.relu(rating_coeff)
         
         # combined weighted loss
         combined_loss = (self.T_loss_not_has_rating_weight * loss_t_not_has_rating + 
                          self.T_loss_has_rating_weight * loss_t_has_rating + 
                          self.rating_loss_weight * observed_loss_rating + 
-                         self.reg_loss_weight * reg_loss)
+                         self.reg_loss_weight * reg_loss + 
+                         self.reg_loss_reporting_weight * reg_loss_reporting +
+                         self.rating_coeff_loss_weight * rating_coeff_loss)
         
         # log results
         self.training_step_outputs.append({'loss': combined_loss.item(),
@@ -216,6 +237,8 @@ class GNN_model(pl.LightningModule):
                                            't_loss_has_rating': loss_t_has_rating.item(),
                                            'observed_rating_loss': observed_loss_rating.item(),
                                            'reg_loss': reg_loss.item(),
+                                           'reg_loss_reporting': reg_loss_reporting.item(),
+                                           'rating_coeff_loss': rating_coeff_loss.item(),
                                            'P(T)': pt.detach(),
                                            'true_t': t_labels.detach(),
                                            'pred_rating': pred_rating.detach(),
@@ -248,6 +271,12 @@ class GNN_model(pl.LightningModule):
         # loss (d)
         avg_train_reg_loss = torch.tensor([x['reg_loss'] for x in self.training_step_outputs]).mean()
         
+        # loss (e)
+        avg_train_reg_loss_reporting = torch.tensor([x['reg_loss_reporting'] for x in self.training_step_outputs]).mean()
+        
+        # loss (f)
+        avg_train_rating_coeff_loss = torch.tensor([x['rating_coeff_loss'] for x in self.training_step_outputs]).mean()
+        
         # get variables
         pred_rating = torch.cat([x['pred_rating'] for x in self.training_step_outputs]).cpu().detach().numpy()
         true_rating = torch.cat([x['true_rating'] for x in self.training_step_outputs]).cpu().detach().numpy()
@@ -274,7 +303,8 @@ class GNN_model(pl.LightningModule):
         self.log('train_loss_T_has_rating', avg_train_loss_t_has_rating)
         self.log('train_loss_T_not_has_rating', avg_train_loss_t_not_has_rating)
         self.log('train_reg_loss', avg_train_reg_loss)
-        
+        self.log('train_reg_loss_reporting', avg_train_reg_loss_reporting)
+        self.log('train_rating_coeff_loss', avg_train_rating_coeff_loss)
         self.training_step_outputs = []
         self.train_type_idxs = []
         self.train_node_idxs = []
