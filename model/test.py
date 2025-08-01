@@ -55,7 +55,8 @@ def get_args():
     parser.add_argument('--T_loss_not_has_rating_weight', type=float, default=1)
     parser.add_argument('--rating_loss_weight', type=float, default=1)
     parser.add_argument('--reg_loss_weight', type=float, default=0)
-    
+    parser.add_argument('--reg_loss_reporting_weight', type=float, default=0)
+    parser.add_argument('--rating_coeff_loss_weight', type=float, default=0)
     parser.add_argument('--epoch', type=str)
     parser.add_argument('--file_type', type=str, default='')
     args = parser.parse_args()
@@ -106,6 +107,19 @@ def main():
     dcwp_idx = type_df[type_df['typeagency'] == 'ConsumerComplaintDCWP']['type_idxs'].iloc[0]
     observed_type_idxs = np.array([street_idx, park_idx, rodent_idx, restaurant_idx, dcwp_idx])
     
+    if args.complaint_type == 'street':
+        complaint_type_idx = street_idx
+    elif args.complaint_type == 'park':
+        complaint_type_idx = park_idx
+    elif args.complaint_type == 'rodent':
+        complaint_type_idx = rodent_idx
+    elif args.complaint_type == 'restaurant':
+        complaint_type_idx = restaurant_idx
+    elif args.complaint_type == 'dcwp':
+        complaint_type_idx = dcwp_idx
+    else:
+        complaint_type_idx = -1
+
     # get column names for data from df
     if args.type == 'semisynthetic_test':
         t_label = 'bitflip_reported'
@@ -147,7 +161,11 @@ def main():
                        args.T_loss_not_has_rating_weight, 
                        args.rating_loss_weight,
                        args.reg_loss_weight,
-                       observed_type_idxs
+                       args.reg_loss_reporting_weight,
+                       args.rating_coeff_loss_weight,
+                       args.scaling_factor,
+                       observed_type_idxs,
+                       complaint_type_idx
                       ).to(device)
 
     checkpoint_path = '/share/garg/311_data/sb2377/results/job{}/model-epoch={}.ckpt'.format(args.job_id, args.epoch)

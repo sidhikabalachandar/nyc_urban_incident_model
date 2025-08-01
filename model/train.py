@@ -43,6 +43,9 @@ def get_args():
     parser.add_argument('--T_loss_not_has_rating_weight', type=float, default=1) # weight on report loss for data points with unobserved ratings
     parser.add_argument('--rating_loss_weight', type=float, default=1) # weight on rating loss
     parser.add_argument('--reg_loss_weight', type=float, default=0) # weight on regularization loss
+    parser.add_argument('--reg_loss_reporting_weight', type=float, default=0)
+    parser.add_argument('--rating_coeff_loss_weight', type=float, default=0)
+    parser.add_argument('--scaling_factor', type=float, default=0)
     parser.add_argument('--job_id', type=str, default=0) # job id
     parser.add_argument('--num_epochs', type=int)
     args = parser.parse_args()
@@ -91,6 +94,19 @@ def main():
     restaurant_idx = type_df[type_df['typeagency'] == 'FoodDOHMH']['type_idxs'].iloc[0]
     dcwp_idx = type_df[type_df['typeagency'] == 'ConsumerComplaintDCWP']['type_idxs'].iloc[0]
     observed_type_idxs = np.array([street_idx, park_idx, rodent_idx, restaurant_idx, dcwp_idx])
+
+    if args.complaint_type == 'street':
+        complaint_type_idx = street_idx
+    elif args.complaint_type == 'park':
+        complaint_type_idx = park_idx
+    elif args.complaint_type == 'rodent':
+        complaint_type_idx = rodent_idx
+    elif args.complaint_type == 'restaurant':
+        complaint_type_idx = restaurant_idx
+    elif args.complaint_type == 'dcwp':
+        complaint_type_idx = dcwp_idx
+    else:
+        complaint_type_idx = -1
     
     # get column names for data from df
     if args.type == 'semisynthetic':
@@ -147,6 +163,9 @@ def main():
     wandb_logger.experiment.config["T_loss_not_has_rating_weight"] = args.T_loss_not_has_rating_weight
     wandb_logger.experiment.config["rating_loss_weight"] = args.rating_loss_weight
     wandb_logger.experiment.config["reg_loss_weight"] = args.reg_loss_weight
+    wandb_logger.experiment.config["reg_loss_reporting_weight"] = args.reg_loss_reporting_weight
+    wandb_logger.experiment.config["rating_coeff_loss_weight"] = args.rating_coeff_loss_weight
+    wandb_logger.experiment.config["scaling_factor"] = args.scaling_factor
     wandb_logger.experiment.config["job_id"] = args.job_id
     
     # get model
@@ -164,7 +183,11 @@ def main():
                       args.T_loss_not_has_rating_weight, 
                       args.rating_loss_weight,
                       args.reg_loss_weight,
-                      observed_type_idxs
+                      args.reg_loss_reporting_weight,
+                      args.rating_coeff_loss_weight,
+                      args.scaling_factor,
+                      observed_type_idxs,
+                      complaint_type_idx
                      ).to(device)
     wandb_logger.watch(model, log_freq=1)
 
